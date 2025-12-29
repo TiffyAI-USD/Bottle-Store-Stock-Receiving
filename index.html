@@ -149,7 +149,7 @@
             currentReceiving.forEach(entry => {
                 totalUnits += entry.quantity;
                 const li = document.createElement("li");
-                li.textContent = `${entry.name} — \( {entry.quantity} units ( \){entry.detail})`; // Fixed – clean text
+                li.textContent = `${entry.name} — \( {entry.quantity} units ( \){entry.detail})`; // FIXED – clean text
                 list.appendChild(li);
             });
             document.getElementById("totalReceived").textContent = `Total Units Received: ${totalUnits}`;
