@@ -16,27 +16,23 @@
         }
         header { 
             background: #111; 
-            padding: 8px 10px; 
+            padding: 5px 10px; 
             text-align: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 10; 
             border-bottom: 2px solid #d4a373;
         }
         h1 { 
             color: #d4a373; 
-            font-size: 1.4rem; 
+            font-size: 1.3rem; 
             margin: 0; 
-            line-height: 1.2;
         }
-        .container { padding: 10px; }
-        h2 { font-size: 1.4rem; margin: 10px 0 5px; }
+        .container { padding: 8px; }
+        h2 { font-size: 1.3rem; margin: 8px 0 4px; }
         input, button { 
-            font-size: 1.5rem; 
-            padding: 12px; 
-            margin: 8px 0; 
+            font-size: 1.4rem; 
+            padding: 10px; 
+            margin: 6px 0; 
             width: 100%; 
-            border-radius: 10px; 
+            border-radius: 8px; 
             box-sizing: border-box;
         }
         button { 
@@ -45,25 +41,26 @@
             border: none; 
             cursor: pointer; 
         }
+        p { margin: 4px 0; font-size: 1.2rem; }
         #receivingList, #inventoryList { 
             list-style: none; 
             padding: 0; 
-            max-height: 45vh; 
+            max-height: 40vh; 
             overflow-y: auto; 
-            margin: 15px 0; 
+            margin: 10px 0; 
         }
         #receivingList li, #inventoryList li { 
             background: #111; 
-            padding: 12px; 
-            margin: 8px 0; 
-            border-radius: 10px; 
-            font-size: 1.4rem; 
+            padding: 10px; 
+            margin: 6px 0; 
+            border-radius: 8px; 
+            font-size: 1.3rem; 
         }
         #totalReceived { 
-            font-size: 1.6rem; 
+            font-size: 1.5rem; 
             text-align: center; 
             color: #d4a373; 
-            margin: 15px 0; 
+            margin: 10px 0; 
         }
         #sections > div { display: none; }
         .active { display: block; }
@@ -73,14 +70,14 @@
             left: 50%; 
             transform: translate(-50%, -50%); 
             background: #111; 
-            padding: 20px; 
-            border-radius: 20px; 
+            padding: 15px; 
+            border-radius: 15px; 
             width: 90%; 
-            max-width: 500px; 
+            max-width: 450px; 
             z-index: 1000; 
             box-shadow: 0 0 30px rgba(212,163,115,0.7); 
         }
-        #multiplierPopup input { margin: 10px 0; text-align: center; }
+        #multiplierPopup input { margin: 8px 0; text-align: center; font-size: 1.4rem; }
         #scannerVideo { 
             width: 100%; 
             max-width: 500px; 
@@ -92,7 +89,7 @@
 </head>
 <body>
     <header>
-        <h1>BOTTLE STORE<br>STOCK RECEIVING</h1>
+        <h1>BOTTLE STORE STOCK RECEIVING</h1>
     </header>
 
     <div class="container" id="sections">
@@ -102,7 +99,7 @@
             <input type="text" id="supplierInput" placeholder="Supplier" list="suppliersList" />
             <datalist id="suppliersList"></datalist>
             <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
-            <p style="margin:8px 0;font-size:1.3rem;">Date: <span id="todayDate"></span></p>
+            <p>Date: <span id="todayDate"></span></p>
 
             <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
             <video id="scannerVideo" playsinline autoplay muted></video>
