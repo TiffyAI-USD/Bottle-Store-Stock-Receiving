@@ -71,8 +71,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
-        function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
-        function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
+        function playClick() { 
+            document.getElementById("clickSound").play().catch(() => {}); 
+        }
+        function playSparkle() { 
+            document.getElementById("sparkleSound").play().catch(() => {}); 
+        }
 
         document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
 
