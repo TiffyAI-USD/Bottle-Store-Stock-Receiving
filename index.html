@@ -149,10 +149,10 @@
             currentReceiving.forEach(entry => {
                 totalUnits += entry.quantity;
                 const li = document.createElement("li");
-                li.textContent = `${entry.name} — \( {entry.quantity} units ( \){entry.detail})`; // FIXED – clean text
+                li.textContent = entry.name + " — " + entry.quantity + " units (" + entry.detail + ")"; // FIXED – clean text
                 list.appendChild(li);
             });
-            document.getElementById("totalReceived").textContent = `Total Units Received: ${totalUnits}`;
+            document.getElementById("totalReceived").textContent = "Total Units Received: " + totalUnits;
         }
 
         function updateInventoryList() {
@@ -165,8 +165,8 @@
 
             sorted.forEach(item => {
                 const li = document.createElement("li");
-                li.textContent = `${item.name} — Stock: ${item.stock}`;
-                if (item.stock > 0) li.classList.add("good-stock"); // Green for stock
+                li.textContent = item.name + " — Stock: " + item.stock;
+                if (item.stock > 0) li.classList.add("good-stock");
                 list.appendChild(li);
             });
         }
@@ -205,12 +205,12 @@
             if (quantity === 0) quantity = 1;
 
             let detail = [];
-            if (p4 > 0) detail.push(`${p4}×4-pack`);
-            if (p6 > 0) detail.push(`${p6}×6-pack`);
-            if (p12 > 0) detail.push(`${p12}×12-pack`);
-            if (c6 > 0) detail.push(`${c6}×case6`);
-            if (c12 > 0) detail.push(`${c12}×case12`);
-            if (c24 > 0) detail.push(`${c24}×case24`);
+            if (p4 > 0) detail.push(p4 + "×4-pack");
+            if (p6 > 0) detail.push(p6 + "×6-pack");
+            if (p12 > 0) detail.push(p12 + "×12-pack");
+            if (c6 > 0) detail.push(c6 + "×case6");
+            if (c12 > 0) detail.push(c12 + "×case12");
+            if (c24 > 0) detail.push(c24 + "×case24");
             if (detail.length === 0) detail.push("1 single");
 
             inventory[pendingCode].stock += quantity;
