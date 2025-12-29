@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BOTTLE STORE STOCK RECEIVING</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; min-height: 100vh; }
         h1 { text-align: center; color: #d4a373; font-size: 2.5rem; margin: 20px 0; }
         input, button, select { font-size: 1.8rem; padding: 15px; margin: 10px 0; width: 100%; border-radius: 10px; }
         button { background: #d4a373; color: #000; border: none; cursor: pointer; }
-        #receivingList, #inventoryList { list-style: none; padding: 0; }
-        li { background: #111; padding: 15px; margin: 10px 0; border-radius: 10px; font-size: 1.6rem; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 50vh; overflow-y: auto; margin: 20px 0; }
+        #receivingList li, #inventoryList li { background: #111; padding: 15px; margin: 10px 0; border-radius: 10px; font-size: 1.6rem; }
         #totalReceived { font-size: 2rem; text-align: center; color: #d4a373; margin: 20px 0; }
         #sections > div { display: none; }
         .active { display: block; }
@@ -36,7 +36,7 @@
             <video id="scannerVideo" playsinline autoplay muted style="width:100%;max-width:500px;border-radius:10px;display:none;"></video>
 
             <input type="text" id="barcodeInput" placeholder="Scan or type barcode" autofocus />
-            <div id="receivingList"></div>
+            <ul id="receivingList"></ul>
             <div id="totalReceived">Total Units Received: 0</div>
 
             <button onclick="printReceivingReport()">Print Receiving Report</button>
@@ -66,24 +66,50 @@
         <button onclick="cancelReceive()">Cancel (add 1 single)</button>
     </div>
 
+    <!-- Sounds from your repo -->
+    <audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
+    <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
+
     <!-- QuaggaJS for phone scanning -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
+        // Sounds
+        function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
+        function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
+
+        document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
+
         // Set today's date
         document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
 
         let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {
-            // Add your real barcodes here – example starters
             "6003326012041": { name: "Black Label 500ml", price: 30, stock: 0 },
+            "6003326015790": { name: "Black Label 330ml", price: 30, stock: 0 },
             "6003326015820": { name: "Castle Lager 330ml", price: 30, stock: 0 },
-            "6001108028044": { name: "Savanna Dry 330ml", price: 35, stock: 0 },
+            "6003326015721": { name: "Castle Light 330ml", price: 30, stock: 0 },
+            "6001760007715": { name: "Windhoek 500ml", price: 30, stock: 0 },
             "6001108064264": { name: "Hunters Dry 440ml", price: 35, stock: 0 },
-            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", price: 35, stock: 0 }
+            "6001108055231": { name: "Hunters Gold 330ml", price: 35, stock: 0 },
+            "6001398128400": { name: "Smirnoff Ice Pine Twist 440ml", price: 35, stock: 0 },
+            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", price: 35, stock: 0 },
+            "5010677554398": { name: "Breezer Watermelon 275ml", price: 35, stock: 0 },
+            "6003326013918": { name: "Flying Fish 500ml", price: 35, stock: 0 },
+            "6001108028044": { name: "Savanna 330ml", price: 35, stock: 0 },
+            "5410228141266": { name: "Stella Artois 330ml", price: 35, stock: 0 },
+            "6003326015691": { name: "Black Crown 440ml", price: 35, stock: 0 },
+            "5000289938297": { name: "Gordons Pink & Tonic 440ml", price: 35, stock: 0 },
+            "5000289938280": { name: "Gordons & Tonic 440ml", price: 35, stock: 0 },
+            "6001108097217": { name: "Extreme 275ml", price: 35, stock: 0 },
+            "2211": { name: "Sodaze 250ml", price: 60, stock: 0 },
+            "6001108112064": { name: "Bernini Mimosa 500ml", price: 35, stock: 0 },
+            "9002490100070": { name: "Red Bull 250ml", price: 25, stock: 0 },
+            "2210": { name: "Lucky Club 250ml", price: 70, stock: 0 }
+            // Add all your other barcodes here
         };
 
         let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor", "PnP Liquor", "Shoprite Liquor", "Mothercity Liquor", "Direct from Brewery"];
-        let currentReceiving = []; // items received this session
+        let currentReceiving = [];
         let pendingCode = "";
         let pendingName = "";
 
@@ -167,10 +193,9 @@
             pendingCode = code;
             pendingName = item.name;
             document.getElementById("popupItemName").textContent = item.name;
-            // Clear inputs
             ["pack4","pack6","pack12","case6","case12","case24"].forEach(id => document.getElementById(id).value = "");
             document.getElementById("multiplierPopup").style.display = "block";
-            document.getElementById("pack6").focus(); // default to most common
+            document.getElementById("pack6").focus();
         }
 
         function confirmReceive() {
@@ -200,6 +225,7 @@
                 detail: detail.join(" + ")
             });
 
+            playSparkle();
             saveAll();
             updateReceivingList();
             document.getElementById("multiplierPopup").style.display = "none";
@@ -213,6 +239,7 @@
                 quantity: 1,
                 detail: "1 single"
             });
+            playSparkle();
             saveAll();
             updateReceivingList();
             document.getElementById("multiplierPopup").style.display = "none";
