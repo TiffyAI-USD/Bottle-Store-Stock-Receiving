@@ -58,7 +58,7 @@
 
         <div id="count">
             <h2>Count Case with Camera</h2>
-            <p>Point at case – AI counts automatically. Tap screen to +1 (if missed)</p>
+            <p>Point at case – AI counts automatically. Tap screen to +1 (if missed). Record to add as loose stock for last scanned item.</p>
             <button onclick="startCountCamera()">Start Counting</button>
             <button onclick="stopCountCamera()">Stop Counting</button>
             <div id="countOverlay" onclick="manualAdd()">
@@ -67,6 +67,7 @@
             </div>
             <div id="countResult">Ready – press Start Counting</div>
             <div id="manualCount">Manual taps: 0</div>
+            <button onclick="recordCount()">Record Count as Received</button>
             <button onclick="switchSection('receiving')">Back to Receiving</button>
         </div>
     </div>
@@ -92,10 +93,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2"></script>
 
     <script>
-        // All your previous functions (playClick, playSparkle, inventory, suppliers, saveAll, updateSuppliersList, addSupplier, switchSection, updateReceivingList, updateInventoryList, barcode keyup, processBarcode, confirmReceive, cancelReceive, clearReceivingSession, printReceivingReport, startPhoneScanner)
-
-        // Paste all the functions from before – they are unchanged
-
         function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
         function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
 
@@ -392,7 +389,7 @@
 
                 aiCount = 0;
                 predictions.forEach(pred => {
-                    if (pred.class === "bottle" && pred.score > 0.5) {
+                    if (pred.class === "bottle" && pred.score > 0.4) {
                         aiCount++;
                         const [x, y, width, height] = pred.bbox;
                         ctx.strokeStyle = "#44ff44";
@@ -419,6 +416,29 @@
             document.getElementById("countVideo").style.display = "none";
             document.getElementById("countCanvas").style.display = "none";
             document.getElementById("countResult").textContent = `Final count: ${aiCount + manualTaps} bottles`;
+        }
+
+        function recordCount() {
+            if (pendingCode === "") {
+                alert("Scan a barcode first to record count for that item");
+                return;
+            }
+            const quantity = aiCount + manualTaps;
+            if (quantity === 0) return alert("No bottles counted");
+
+            inventory[pendingCode].stock += quantity;
+            currentReceiving.push({
+                name: pendingName,
+                quantity: quantity,
+                detail: "loose (AI: " + aiCount + " + manual: " + manualTaps + ")"
+            });
+
+            playSparkle();
+            saveAll();
+            updateReceivingList();
+            updateInventoryList();
+            alert("Recorded " + quantity + " loose for " + pendingName);
+            switchSection('receiving');
         }
 
         updateSuppliersList();
