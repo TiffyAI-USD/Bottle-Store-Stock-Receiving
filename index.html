@@ -3,26 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BOTTLE STORE STOCK RECEIVING</title>
+    <title>BOTTLE STORE RECEIVING</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
             background: #000; 
             color: #fff; 
             margin: 0; 
-            padding: 5px 10px; 
+            padding: 0; 
             min-height: 100vh; 
             box-sizing: border-box;
         }
-        h1 { 
+        header { 
+            background: #111; 
+            padding: 8px 10px; 
             text-align: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            border-bottom: 2px solid #d4a373;
+        }
+        h1 { 
             color: #d4a373; 
-            font-size: 1.6rem; 
-            margin: 5px 0 10px; 
+            font-size: 1.4rem; 
+            margin: 0; 
             line-height: 1.2;
         }
-        h2 { font-size: 1.5rem; margin: 10px 0 5px; }
-        input, button, select { 
+        .container { padding: 10px; }
+        h2 { font-size: 1.4rem; margin: 10px 0 5px; }
+        input, button { 
             font-size: 1.5rem; 
             padding: 12px; 
             margin: 8px 0; 
@@ -51,7 +60,7 @@
             font-size: 1.4rem; 
         }
         #totalReceived { 
-            font-size: 1.7rem; 
+            font-size: 1.6rem; 
             text-align: center; 
             color: #d4a373; 
             margin: 15px 0; 
@@ -72,8 +81,6 @@
             box-shadow: 0 0 30px rgba(212,163,115,0.7); 
         }
         #multiplierPopup input { margin: 10px 0; text-align: center; }
-        .low-stock { color: #ff4444; }
-        .good-stock { color: #44ff44; }
         #scannerVideo { 
             width: 100%; 
             max-width: 500px; 
@@ -84,16 +91,18 @@
     </style>
 </head>
 <body>
-    <h1>BOTTLE STORE<br>STOCK RECEIVING</h1>
+    <header>
+        <h1>BOTTLE STORE<br>STOCK RECEIVING</h1>
+    </header>
 
-    <div id="sections">
+    <div class="container" id="sections">
         <!-- Receiving Section -->
         <div id="receiving" class="active">
             <h2>New Delivery</h2>
-            <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
+            <input type="text" id="supplierInput" placeholder="Supplier" list="suppliersList" />
             <datalist id="suppliersList"></datalist>
             <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
-            <p style="margin:10px 0;font-size:1.4rem;">Date: <span id="todayDate"></span></p>
+            <p style="margin:8px 0;font-size:1.3rem;">Date: <span id="todayDate"></span></p>
 
             <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
             <video id="scannerVideo" playsinline autoplay muted></video>
@@ -129,21 +138,19 @@
         <button onclick="cancelReceive()">Cancel (add 1 single)</button>
     </div>
 
-    <!-- Sounds from your repo -->
+    <!-- Sounds -->
     <audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
     <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
 
-    <!-- QuaggaJS for phone scanning -->
+    <!-- QuaggaJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
-        // Sounds
         function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
         function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
 
         document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
 
-        // Set today's date
         document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
 
         let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {
@@ -234,12 +241,10 @@
                 const li = document.createElement("li");
                 li.textContent = `${item.name} — Stock: ${item.stock}`;
                 if (item.stock < 10) li.classList.add("low-stock");
-                if (item.stock >= 50) li.classList.add("good-stock");
                 list.appendChild(li);
             });
         }
 
-        // Barcode input handler
         document.getElementById("barcodeInput").addEventListener("change", () => {
             const code = document.getElementById("barcodeInput").value.trim();
             processBarcode(code);
@@ -272,9 +277,9 @@
             if (quantity === 0) quantity = 1;
 
             let detail = [];
-            if (p4 > 0) detail.push(`${p4}×4-pack`);
-            if (p6 > 0) detail.push(`${p6}×6-pack`);
-            if (p12 > 0) detail.push(`${p12}×12-pack`);
+            if (p4 > 0) detail.push(`${p4}×4`);
+            if (p6 > 0) detail.push(`${p6}×6`);
+            if (p12 > 0) detail.push(`${p12}×12`);
             if (c6 > 0) detail.push(`${c6}×case6`);
             if (c12 > 0) detail.push(`${c12}×case12`);
             if (c24 > 0) detail.push(`${c24}×case24`);
@@ -346,7 +351,6 @@
             printWin.print();
         }
 
-        // Phone camera scanner
         function startPhoneScanner() {
             const video = document.getElementById("scannerVideo");
             video.style.display = "block";
@@ -373,7 +377,6 @@
             }).catch(() => alert("Camera access denied"));
         }
 
-        // Initial load
         updateSuppliersList();
         updateReceivingList();
         updateInventoryList();
