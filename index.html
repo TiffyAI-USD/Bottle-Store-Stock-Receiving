@@ -78,9 +78,31 @@
 
         document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
 
-        let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {"6003326012041":{"name":"Black Label 500ml","stock":0},"6003326015790":{"name":"Black Label 330ml","stock":0},"6003326015820":{"name":"Castle Lager 330ml","stock":0},"6003326015721":{"name":"Castle Light 330ml","stock":0},"6001760007715":{"name":"Windhoek 500ml","stock":0},"6001108064264":{"name":"Hunters Dry 440ml","stock":0},"6001108055231":{"name":"Hunters Gold 330ml","stock":0},"6001398128400":{"name":"Smirnoff Ice Pine Twist 440ml","stock":0},"6003326013949":{"name":"Brutal Fruit Ruby Apple 275ml","stock":0},"5010677554398":{"name":"Breezer Watermelon 275ml","stock":0},"6003326013918":{"name":"Flying Fish 500ml","stock":0},"6001108028044":{"name":"Savanna 330ml","stock":0},"5410228141266":{"name":"Stella Artois 330ml","stock":0},"6003326015691":{"name":"Black Crown 440ml","stock":0},"5000289938297":{"name":"Gordons Pink & Tonic 440ml","stock":0},"5000289938280":{"name":"Gordons & Tonic 440ml","stock":0},"6001108097217":{"name":"Extreme 275ml","stock":0},"2211":{"name":"Sodaze 250ml","stock":0},"6001108112064":{"name":"Bernini Mimosa 500ml","stock":0},"9002490100070":{"name":"Red Bull 250ml","stock":0},"2210":{"name":"Lucky Club 250ml","stock":0}};
+        let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {
+            "6003326012041": { name: "Black Label 500ml", stock: 0 },
+            "6003326015790": { name: "Black Label 330ml", stock: 0 },
+            "6003326015820": { name: "Castle Lager 330ml", stock: 0 },
+            "6003326015721": { name: "Castle Light 330ml", stock: 0 },
+            "6001760007715": { name: "Windhoek 500ml", stock: 0 },
+            "6001108064264": { name: "Hunters Dry 440ml", stock: 0 },
+            "6001108055231": { name: "Hunters Gold 330ml", stock: 0 },
+            "6001398128400": { name: "Smirnoff Ice Pine Twist 440ml", stock: 0 },
+            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", stock: 0 },
+            "5010677554398": { name: "Breezer Watermelon 275ml", stock: 0 },
+            "6003326013918": { name: "Flying Fish 500ml", stock: 0 },
+            "6001108028044": { name: "Savanna 330ml", stock: 0 },
+            "5410228141266": { name: "Stella Artois 330ml", stock: 0 },
+            "6003326015691": { name: "Black Crown 440ml", stock: 0 },
+            "5000289938297": { name: "Gordons Pink & Tonic 440ml", stock: 0 },
+            "5000289938280": { name: "Gordons & Tonic 440ml", stock: 0 },
+            "6001108097217": { name: "Extreme 275ml", stock: 0 },
+            "2211": { name: "Sodaze 250ml", stock: 0 },
+            "6001108112064": { name: "Bernini Mimosa 500ml", stock: 0 },
+            "9002490100070": { name: "Red Bull 250ml", stock: 0 },
+            "2210": { name: "Lucky Club 250ml", stock: 0 }
+        };
 
-        let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor","PnP Liquor","Shoprite Liquor","Mothercity Liquor","Direct from Brewery"];
+        let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor", "PnP Liquor", "Shoprite Liquor", "Mothercity Liquor", "Direct from Brewery"];
         let currentReceiving = [];
         let pendingCode = "";
         let pendingName = "";
@@ -136,7 +158,11 @@
         function updateInventoryList() {
             const list = document.getElementById("inventoryList");
             list.innerHTML = "";
-            const sorted = Object.keys(inventory).map(code => ({code, ...inventory[code]})).sort((a, b) => a.name.localeCompare(b.name));
+            const sorted = Object.keys(inventory).map(code => ({
+                code,
+                ...inventory[code]
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
             sorted.forEach(item => {
                 const li = document.createElement("li");
                 li.textContent = item.name + " — Stock: " + item.stock;
@@ -188,7 +214,11 @@
             if (detail.length === 0) detail.push("1 single");
 
             inventory[pendingCode].stock += quantity;
-            currentReceiving.push({name: pendingName, quantity: quantity, detail: detail.join(" + ")});
+            currentReceiving.push({
+                name: pendingName,
+                quantity: quantity,
+                detail: detail.join(" + ")
+            });
 
             playSparkle();
             saveAll();
@@ -200,7 +230,11 @@
 
         function cancelReceive() {
             inventory[pendingCode].stock += 1;
-            currentReceiving.push({name: pendingName, quantity: 1, detail: "1 single"});
+            currentReceiving.push({
+                name: pendingName,
+                quantity: 1,
+                detail: "1 single"
+            });
             playSparkle();
             saveAll();
             updateReceivingList();
@@ -223,7 +257,12 @@
             const deliveryNote = document.getElementById("deliveryNote").value || "N/A";
             const date = document.getElementById("todayDate").textContent;
 
-            let report = "BOTTLE STORE STOCK RECEIVING\n====================================\nSupplier: " + supplier + "\nDelivery Note: " + deliveryNote + "\nDate: " + date + "\n\nItems Received:\n";
+            let report = "BOTTLE STORE STOCK RECEIVING\n";
+            report += "====================================\n";
+            report += "Supplier: " + supplier + "\n";
+            report += "Delivery Note: " + deliveryNote + "\n";
+            report += "Date: " + date + "\n\n";
+            report += "Items Received:\n";
 
             let grandTotal = 0;
             currentReceiving.forEach(entry => {
@@ -231,7 +270,9 @@
                 grandTotal += entry.quantity;
             });
 
-            report += "====================================\nTOTAL UNITS RECEIVED: ".padEnd(30) + grandTotal + "\nThank you!\n\n\n";
+            report += "====================================\n";
+            report += "TOTAL UNITS RECEIVED: ".padEnd(30) + grandTotal + "\n";
+            report += "Thank you!\n\n\n";
 
             const printWin = window.open('', '_blank');
             printWin.document.write('<pre style="font-family: monospace; font-size: 14pt;">' + report + '</pre>');
