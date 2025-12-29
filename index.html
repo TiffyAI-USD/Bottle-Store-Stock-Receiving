@@ -18,8 +18,7 @@
         #receiving { display: block; }
         #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
         #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
-        #scannerVideo, #countVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
-        #countResult { font-size: 2rem; margin: 20px 0; color: #44ff44; font-weight: bold; }
+        #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
         .good-stock { color: #44ff44; font-weight: bold; }
     </style>
 </head>
@@ -43,7 +42,6 @@
 
             <button onclick="printReceivingReport()">Print Receiving Report</button>
             <button onclick="switchSection('inventory')">View Current Inventory</button>
-            <button onclick="switchSection('count')">Count Case with Camera</button>
             <button onclick="clearReceivingSession()">Clear Session</button>
         </div>
 
@@ -51,16 +49,6 @@
             <h2>Current Inventory</h2>
             <button onclick="switchSection('receiving')">Back to Receiving</button>
             <ul id="inventoryList"></ul>
-        </div>
-
-        <div id="count">
-            <h2>Count Case with Camera</h2>
-            <p>Point the camera at a case of bottles – the app will count them in real-time</p>
-            <button onclick="startCountCamera()">Start Counting</button>
-            <button onclick="stopCountCamera()">Stop Counting</button>
-            <video id="countVideo" playsinline autoplay muted></video>
-            <div id="countResult">Ready – start camera to count</div>
-            <button onclick="switchSection('receiving')">Back to Receiving</button>
         </div>
     </div>
 
@@ -81,8 +69,6 @@
     <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2"></script>
 
     <script>
         function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
@@ -152,7 +138,6 @@
         function switchSection(section) {
             document.getElementById("receiving").style.display = "none";
             document.getElementById("inventory").style.display = "none";
-            document.getElementById("count").style.display = "none";
             document.getElementById(section).style.display = "block";
             if (section === 'inventory') updateInventoryList();
         }
@@ -322,63 +307,10 @@
             }).catch(() => alert("Camera access denied"));
         }
 
-        // Counting Camera
-        let countModel;
-        let countStream = null;
-        let counting = false;
-
-        async function loadCountModel() {
-            if (!countModel) {
-                countModel = await cocoSsd.load();
-            }
-        }
-
-        async function startCountCamera() {
-            await loadCountModel();
-
-            const video = document.getElementById("countVideo");
-            const result = document.getElementById("countResult");
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-                countStream = stream;
-                video.srcObject = stream;
-                video.style.display = "block";
-                video.play();
-
-                counting = true;
-                detectFrame();
-            }).catch(() => alert("Camera access denied"));
-
-            async function detectFrame() {
-                if (!counting) return;
-
-                const predictions = await countModel.detect(video);
-                let bottleCount = 0;
-                predictions.forEach(pred => {
-                    if (pred.class === "bottle" && pred.score > 0.6) {
-                        bottleCount++;
-                    }
-                });
-
-                result.textContent = bottleCount + " bottles detected";
-
-                if (counting) requestAnimationFrame(detectFrame);
-            }
-        }
-
-        function stopCountCamera() {
-            counting = false;
-            if (countStream) {
-                countStream.getTracks().forEach(track => track.stop());
-                countStream = null;
-            }
-            document.getElementById("countVideo").style.display = "none";
-            document.getElementById("countResult").textContent = "Counting stopped";
-        }
-
         updateSuppliersList();
         updateReceivingList();
         updateInventoryList();
+        document.getElementById("multiplierPopup").style.display = "none"; // Force hide popup on load
     </script>
 </body>
 </html>
