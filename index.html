@@ -10,20 +10,20 @@
             background: #000; 
             color: #fff; 
             margin: 0; 
-            padding: 10px; 
+            padding: 5px 10px; 
             min-height: 100vh; 
             box-sizing: border-box;
         }
         h1 { 
             text-align: center; 
             color: #d4a373; 
-            font-size: 1.8rem; /* Smaller on phone */
-            margin: 10px 0; 
+            font-size: 1.6rem; 
+            margin: 5px 0 10px; 
             line-height: 1.2;
         }
-        h2 { font-size: 1.6rem; margin: 15px 0 10px; }
+        h2 { font-size: 1.5rem; margin: 10px 0 5px; }
         input, button, select { 
-            font-size: 1.6rem; 
+            font-size: 1.5rem; 
             padding: 12px; 
             margin: 8px 0; 
             width: 100%; 
@@ -48,10 +48,10 @@
             padding: 12px; 
             margin: 8px 0; 
             border-radius: 10px; 
-            font-size: 1.5rem; 
+            font-size: 1.4rem; 
         }
         #totalReceived { 
-            font-size: 1.8rem; 
+            font-size: 1.7rem; 
             text-align: center; 
             color: #d4a373; 
             margin: 15px 0; 
@@ -78,7 +78,7 @@
             width: 100%; 
             max-width: 500px; 
             border-radius: 10px; 
-            margin: 15px 0; 
+            margin: 10px 0; 
             display: none; 
         }
     </style>
@@ -93,7 +93,7 @@
             <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
             <datalist id="suppliersList"></datalist>
             <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
-            <p>Date: <span id="todayDate"></span></p>
+            <p style="margin:10px 0;font-size:1.4rem;">Date: <span id="todayDate"></span></p>
 
             <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
             <video id="scannerVideo" playsinline autoplay muted></video>
