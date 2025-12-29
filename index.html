@@ -11,12 +11,12 @@
         input, button { font-size: 1.6rem; padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; box-sizing: border-box; }
         button { background: #d4a373; color: #000; border: none; cursor: pointer; }
         p { font-size: 1.4rem; margin: 8px 0; }
-        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 35vh; overflow-y: auto; margin: 15px 0; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 40vh; overflow-y: auto; margin: 15px 0; }
         #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
         #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
-        .active { display: block; }
-        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); }
+        #receiving { display: block !important; } /* Force receiving visible */
+        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
         #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
         #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
     </style>
@@ -25,7 +25,7 @@
     <h1>BOTTLE STORE STOCK RECEIVING</h1>
 
     <div id="sections">
-        <div id="receiving" class="active">
+        <div id="receiving">
             <h2>New Delivery</h2>
             <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
             <datalist id="suppliersList"></datalist>
@@ -135,8 +135,9 @@
         document.getElementById("supplierInput").addEventListener("change", addSupplier);
 
         function switchSection(section) {
-            document.querySelectorAll('#sections > div').forEach(div => div.classList.remove('active'));
-            document.getElementById(section).classList.add('active');
+            document.getElementById("receiving").style.display = "none";
+            document.getElementById("inventory").style.display = "none";
+            document.getElementById(section).style.display = "block";
             if (section === 'inventory') updateInventoryList();
         }
 
