@@ -6,12 +6,12 @@
     <title>BOTTLE STORE STOCK RECEIVING</title>
     <style>
         body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
-        h1 { text-align: center; color: #d4a373; font-size: 2rem; margin: 10px 0; }
+        h1 { text-align: center; color: #d4a373; font-size: 1.8rem; margin: 10px 0; }
         h2 { font-size: 1.6rem; margin: 10px 0; }
         input, button { font-size: 1.6rem; padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; box-sizing: border-box; }
         button { background: #d4a373; color: #000; border: none; cursor: pointer; }
         p { font-size: 1.4rem; margin: 8px 0; }
-        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 40vh; overflow-y: auto; margin: 15px 0; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 35vh; overflow-y: auto; margin: 15px 0; }
         #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
         #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-    <h1>BOTTLE STORE<br>STOCK RECEIVING</h1>
+    <h1>BOTTLE STORE STOCK RECEIVING</h1>
 
     <div id="sections">
         <div id="receiving" class="active">
@@ -78,27 +78,27 @@
         document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
 
         let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {
-            "6003326012041": { name: "Black Label 500ml", price: 30, stock: 0 },
-            "6003326015790": { name: "Black Label 330ml", price: 30, stock: 0 },
-            "6003326015820": { name: "Castle Lager 330ml", price: 30, stock: 0 },
-            "6003326015721": { name: "Castle Light 330ml", price: 30, stock: 0 },
-            "6001760007715": { name: "Windhoek 500ml", price: 30, stock: 0 },
-            "6001108064264": { name: "Hunters Dry 440ml", price: 35, stock: 0 },
-            "6001108055231": { name: "Hunters Gold 330ml", price: 35, stock: 0 },
-            "6001398128400": { name: "Smirnoff Ice Pine Twist 440ml", price: 35, stock: 0 },
-            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", price: 35, stock: 0 },
-            "5010677554398": { name: "Breezer Watermelon 275ml", price: 35, stock: 0 },
-            "6003326013918": { name: "Flying Fish 500ml", price: 35, stock: 0 },
-            "6001108028044": { name: "Savanna 330ml", price: 35, stock: 0 },
-            "5410228141266": { name: "Stella Artois 330ml", price: 35, stock: 0 },
-            "6003326015691": { name: "Black Crown 440ml", price: 35, stock: 0 },
-            "5000289938297": { name: "Gordons Pink & Tonic 440ml", price: 35, stock: 0 },
-            "5000289938280": { name: "Gordons & Tonic 440ml", price: 35, stock: 0 },
-            "6001108097217": { name: "Extreme 275ml", price: 35, stock: 0 },
-            "2211": { name: "Sodaze 250ml", price: 60, stock: 0 },
-            "6001108112064": { name: "Bernini Mimosa 500ml", price: 35, stock: 0 },
-            "9002490100070": { name: "Red Bull 250ml", price: 25, stock: 0 },
-            "2210": { name: "Lucky Club 250ml", price: 70, stock: 0 }
+            "6003326012041": { name: "Black Label 500ml", stock: 0 },
+            "6003326015790": { name: "Black Label 330ml", stock: 0 },
+            "6003326015820": { name: "Castle Lager 330ml", stock: 0 },
+            "6003326015721": { name: "Castle Light 330ml", stock: 0 },
+            "6001760007715": { name: "Windhoek 500ml", stock: 0 },
+            "6001108064264": { name: "Hunters Dry 440ml", stock: 0 },
+            "6001108055231": { name: "Hunters Gold 330ml", stock: 0 },
+            "6001398128400": { name: "Smirnoff Ice Pine Twist 440ml", stock: 0 },
+            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", stock: 0 },
+            "5010677554398": { name: "Breezer Watermelon 275ml", stock: 0 },
+            "6003326013918": { name: "Flying Fish 500ml", stock: 0 },
+            "6001108028044": { name: "Savanna 330ml", stock: 0 },
+            "5410228141266": { name: "Stella Artois 330ml", stock: 0 },
+            "6003326015691": { name: "Black Crown 440ml", stock: 0 },
+            "5000289938297": { name: "Gordons Pink & Tonic 440ml", stock: 0 },
+            "5000289938280": { name: "Gordons & Tonic 440ml", stock: 0 },
+            "6001108097217": { name: "Extreme 275ml", stock: 0 },
+            "2211": { name: "Sodaze 250ml", stock: 0 },
+            "6001108112064": { name: "Bernini Mimosa 500ml", stock: 0 },
+            "9002490100070": { name: "Red Bull 250ml", stock: 0 },
+            "2210": { name: "Lucky Club 250ml", stock: 0 }
         };
 
         let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor", "PnP Liquor", "Shoprite Liquor", "Mothercity Liquor", "Direct from Brewery"];
