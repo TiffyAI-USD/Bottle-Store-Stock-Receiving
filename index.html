@@ -2,101 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BOTTLE STORE RECEIVING</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOTTLE STORE STOCK RECEIVING</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #000; 
-            color: #fff; 
-            margin: 0; 
-            padding: 0; 
-            min-height: 100vh; 
-            box-sizing: border-box;
-        }
-        header { 
-            background: #111; 
-            padding: 5px 10px; 
-            text-align: center; 
-            border-bottom: 2px solid #d4a373;
-        }
-        h1 { 
-            color: #d4a373; 
-            font-size: 1.3rem; 
-            margin: 0; 
-        }
-        .container { padding: 8px; }
-        h2 { font-size: 1.3rem; margin: 8px 0 4px; }
-        input, button { 
-            font-size: 1.4rem; 
-            padding: 10px; 
-            margin: 6px 0; 
-            width: 100%; 
-            border-radius: 8px; 
-            box-sizing: border-box;
-        }
-        button { 
-            background: #d4a373; 
-            color: #000; 
-            border: none; 
-            cursor: pointer; 
-        }
-        p { margin: 4px 0; font-size: 1.2rem; }
-        #receivingList, #inventoryList { 
-            list-style: none; 
-            padding: 0; 
-            max-height: 40vh; 
-            overflow-y: auto; 
-            margin: 10px 0; 
-        }
-        #receivingList li, #inventoryList li { 
-            background: #111; 
-            padding: 10px; 
-            margin: 6px 0; 
-            border-radius: 8px; 
-            font-size: 1.3rem; 
-        }
-        #totalReceived { 
-            font-size: 1.5rem; 
-            text-align: center; 
-            color: #d4a373; 
-            margin: 10px 0; 
-        }
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        h1 { text-align: center; color: #d4a373; font-size: 1.8rem; margin: 10px 0; }
+        h2 { font-size: 1.6rem; margin: 10px 0; }
+        input, button { font-size: 1.6rem; padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; box-sizing: border-box; }
+        button { background: #d4a373; color: #000; border: none; cursor: pointer; }
+        p { font-size: 1.4rem; margin: 8px 0; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 40vh; overflow-y: auto; margin: 15px 0; }
+        #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
+        #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
         .active { display: block; }
-        #multiplierPopup { 
-            position: fixed; 
-            top: 50%; 
-            left: 50%; 
-            transform: translate(-50%, -50%); 
-            background: #111; 
-            padding: 15px; 
-            border-radius: 15px; 
-            width: 90%; 
-            max-width: 450px; 
-            z-index: 1000; 
-            box-shadow: 0 0 30px rgba(212,163,115,0.7); 
-        }
-        #multiplierPopup input { margin: 8px 0; text-align: center; font-size: 1.4rem; }
-        #scannerVideo { 
-            width: 100%; 
-            max-width: 500px; 
-            border-radius: 10px; 
-            margin: 10px 0; 
-            display: none; 
-        }
+        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); }
+        #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
+        #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>BOTTLE STORE STOCK RECEIVING</h1>
-    </header>
+    <h1>BOTTLE STORE STOCK RECEIVING</h1>
 
-    <div class="container" id="sections">
-        <!-- Receiving Section -->
+    <div id="sections">
         <div id="receiving" class="active">
             <h2>New Delivery</h2>
-            <input type="text" id="supplierInput" placeholder="Supplier" list="suppliersList" />
+            <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
             <datalist id="suppliersList"></datalist>
             <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
             <p>Date: <span id="todayDate"></span></p>
@@ -113,7 +44,6 @@
             <button onclick="clearReceivingSession()">Clear Session</button>
         </div>
 
-        <!-- Inventory Section -->
         <div id="inventory">
             <h2>Current Inventory</h2>
             <button onclick="switchSection('receiving')">Back to Receiving</button>
@@ -121,7 +51,6 @@
         </div>
     </div>
 
-    <!-- Multiplier Popup -->
     <div id="multiplierPopup">
         <h2 id="popupItemName"></h2>
         <p>Enter pack/case quantities (leave blank for 1 single)</p>
@@ -135,11 +64,9 @@
         <button onclick="cancelReceive()">Cancel (add 1 single)</button>
     </div>
 
-    <!-- Sounds -->
     <audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
     <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
 
-    <!-- QuaggaJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
@@ -237,15 +164,16 @@
             sorted.forEach(item => {
                 const li = document.createElement("li");
                 li.textContent = `${item.name} — Stock: ${item.stock}`;
-                if (item.stock < 10) li.classList.add("low-stock");
                 list.appendChild(li);
             });
         }
 
-        document.getElementById("barcodeInput").addEventListener("change", () => {
-            const code = document.getElementById("barcodeInput").value.trim();
-            processBarcode(code);
-            document.getElementById("barcodeInput").value = "";
+        document.getElementById("barcodeInput").addEventListener("keyup", e => {
+            if (e.key === "Enter") {
+                const code = document.getElementById("barcodeInput").value.trim();
+                processBarcode(code);
+                document.getElementById("barcodeInput").value = "";
+            }
         });
 
         function processBarcode(code) {
@@ -274,9 +202,9 @@
             if (quantity === 0) quantity = 1;
 
             let detail = [];
-            if (p4 > 0) detail.push(`${p4}×4`);
-            if (p6 > 0) detail.push(`${p6}×6`);
-            if (p12 > 0) detail.push(`${p12}×12`);
+            if (p4 > 0) detail.push(`${p4}×4-pack`);
+            if (p6 > 0) detail.push(`${p6}×6-pack`);
+            if (p12 > 0) detail.push(`${p12}×12-pack`);
             if (c6 > 0) detail.push(`${c6}×case6`);
             if (c12 > 0) detail.push(`${c12}×case12`);
             if (c24 > 0) detail.push(`${c24}×case24`);
