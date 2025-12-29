@@ -2,22 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BOTTLE STORE STOCK RECEIVING</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; min-height: 100vh; }
-        h1 { text-align: center; color: #d4a373; font-size: 2.5rem; margin: 20px 0; }
-        input, button, select { font-size: 1.8rem; padding: 15px; margin: 10px 0; width: 100%; border-radius: 10px; }
-        button { background: #d4a373; color: #000; border: none; cursor: pointer; }
-        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 50vh; overflow-y: auto; margin: 20px 0; }
-        #receivingList li, #inventoryList li { background: #111; padding: 15px; margin: 10px 0; border-radius: 10px; font-size: 1.6rem; }
-        #totalReceived { font-size: 2rem; text-align: center; color: #d4a373; margin: 20px 0; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #000; 
+            color: #fff; 
+            margin: 0; 
+            padding: 10px; 
+            min-height: 100vh; 
+            box-sizing: border-box;
+        }
+        h1 { 
+            text-align: center; 
+            color: #d4a373; 
+            font-size: 1.8rem; /* Smaller on phone */
+            margin: 10px 0; 
+            line-height: 1.2;
+        }
+        h2 { font-size: 1.6rem; margin: 15px 0 10px; }
+        input, button, select { 
+            font-size: 1.6rem; 
+            padding: 12px; 
+            margin: 8px 0; 
+            width: 100%; 
+            border-radius: 10px; 
+            box-sizing: border-box;
+        }
+        button { 
+            background: #d4a373; 
+            color: #000; 
+            border: none; 
+            cursor: pointer; 
+        }
+        #receivingList, #inventoryList { 
+            list-style: none; 
+            padding: 0; 
+            max-height: 45vh; 
+            overflow-y: auto; 
+            margin: 15px 0; 
+        }
+        #receivingList li, #inventoryList li { 
+            background: #111; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 10px; 
+            font-size: 1.5rem; 
+        }
+        #totalReceived { 
+            font-size: 1.8rem; 
+            text-align: center; 
+            color: #d4a373; 
+            margin: 15px 0; 
+        }
         #sections > div { display: none; }
         .active { display: block; }
-        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 500px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); }
+        #multiplierPopup { 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: #111; 
+            padding: 20px; 
+            border-radius: 20px; 
+            width: 90%; 
+            max-width: 500px; 
+            z-index: 1000; 
+            box-shadow: 0 0 30px rgba(212,163,115,0.7); 
+        }
         #multiplierPopup input { margin: 10px 0; text-align: center; }
         .low-stock { color: #ff4444; }
         .good-stock { color: #44ff44; }
+        #scannerVideo { 
+            width: 100%; 
+            max-width: 500px; 
+            border-radius: 10px; 
+            margin: 15px 0; 
+            display: none; 
+        }
     </style>
 </head>
 <body>
@@ -33,7 +96,7 @@
             <p>Date: <span id="todayDate"></span></p>
 
             <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
-            <video id="scannerVideo" playsinline autoplay muted style="width:100%;max-width:500px;border-radius:10px;display:none;"></video>
+            <video id="scannerVideo" playsinline autoplay muted></video>
 
             <input type="text" id="barcodeInput" placeholder="Scan or type barcode" autofocus />
             <ul id="receivingList"></ul>
@@ -105,7 +168,6 @@
             "6001108112064": { name: "Bernini Mimosa 500ml", price: 35, stock: 0 },
             "9002490100070": { name: "Red Bull 250ml", price: 25, stock: 0 },
             "2210": { name: "Lucky Club 250ml", price: 70, stock: 0 }
-            // Add all your other barcodes here
         };
 
         let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor", "PnP Liquor", "Shoprite Liquor", "Mothercity Liquor", "Direct from Brewery"];
