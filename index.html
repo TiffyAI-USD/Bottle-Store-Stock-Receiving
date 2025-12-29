@@ -16,12 +16,13 @@
         #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
         #receiving { display: block; }
-        #multiplierPopup, #countPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
-        #multiplierPopup input, #countPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
-        #scannerVideo, #countVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
-        #countOverlay { position: relative; margin: -60px 0 20px 0; text-align: center; font-size: 2rem; color: #44ff44; font-weight: bold; pointer-events: none; }
-        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
+        #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
+        #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
         .good-stock { color: #44ff44; font-weight: bold; }
+        #countSection { text-align: center; }
+        #countVideo { width: 100%; max-width: 500px; border-radius: 10px; }
+        #countResult { font-size: 2rem; margin: 20px 0; color: #44ff44; }
     </style>
 </head>
 <body>
@@ -44,7 +45,7 @@
 
             <button onclick="printReceivingReport()">Print Receiving Report</button>
             <button onclick="switchSection('inventory')">View Current Inventory</button>
-            <button onclick="switchSection('count')">Count Case (Camera)</button>
+            <button onclick="switchSection('count')">Count Case with Camera</button>
             <button onclick="clearReceivingSession()">Clear Session</button>
         </div>
 
@@ -56,13 +57,12 @@
 
         <div id="count">
             <h2>Count Case with Camera</h2>
-            <p>Point camera at case – app will count bottles</p>
-            <button onclick="startCountCamera()">Start Counting</button>
-            <button onclick="stopCountCamera()">Stop</button>
-            <div style="position: relative;">
+            <p>Point at a case – app counts bottles in real-time</p>
+            <button onclick="startCountCamera()">Start Camera</button>
+            <button onclick="stopCountCamera()">Stop Camera</button>
+            <div id="countSection">
                 <video id="countVideo" playsinline autoplay muted></video>
-                <canvas id="countCanvas"></canvas>
-                <div id="countOverlay">Counting...</div>
+                <div id="countResult">Counting...</div>
             </div>
             <button onclick="switchSection('receiving')">Back to Receiving</button>
         </div>
@@ -85,15 +85,13 @@
     <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2.7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.1.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
 
     <script>
-        // Common functions (play sounds, date, inventory, suppliers, saveAll, updateSuppliersList, addSupplier, switchSection, updateReceivingList, updateInventoryList, processBarcode, confirmReceive, cancelReceive, clearReceivingSession, printReceivingReport, startPhoneScanner) – same as before
+        // All your previous script code (playClick, playSparkle, inventory, suppliers, saveAll, updateSuppliersList, addSupplier, switchSection, updateReceivingList with clean text, updateInventoryList with green, barcode keyup, processBarcode, confirmReceive, cancelReceive, clearReceivingSession, printReceivingReport, startPhoneScanner)
 
-        // ... (keep all your previous script code up to startPhoneScanner)
-
-        // New: Counting Camera
+        // Add this for counting camera
         let countModel;
         let countStream;
         let counting = false;
@@ -106,49 +104,33 @@
 
         async function startCountCamera() {
             const video = document.getElementById("countVideo");
-            const canvas = document.getElementById("countCanvas");
-            const overlay = document.getElementById("countOverlay");
-            const ctx = canvas.getContext("2d");
+            const result = document.getElementById("countResult");
 
             await loadCountModel();
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
                 countStream = stream;
                 video.srcObject = stream;
-                video.style.display = "block";
-                canvas.style.display = "block";
                 video.play();
 
                 counting = true;
                 detectFrame();
-            });
+            }).catch(() => alert("Camera access denied"));
 
             async function detectFrame() {
                 if (!counting) return;
 
-                countModel.detect(video).then(predictions => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-
-                    let bottleCount = 0;
-                    predictions.forEach(pred => {
-                        if (pred.class === "bottle" && pred.score > 0.6) {
-                            bottleCount++;
-                            const [x, y, width, height] = pred.bbox;
-                            ctx.strokeStyle = "#44ff44";
-                            ctx.lineWidth = 4;
-                            ctx.strokeRect(x, y, width, height);
-                            ctx.fillStyle = "#44ff44";
-                            ctx.font = "20px Arial";
-                            ctx.fillText("bottle", x, y - 10);
-                        }
-                    });
-
-                    overlay.textContent = `${bottleCount} bottles detected`;
-
-                    requestAnimationFrame(detectFrame);
+                const predictions = await countModel.detect(video);
+                let bottleCount = 0;
+                predictions.forEach(pred => {
+                    if (pred.class === "bottle" && pred.score > 0.6) {
+                        bottleCount++;
+                    }
                 });
+
+                result.textContent = `${bottleCount} bottles detected`;
+
+                if (counting) requestAnimationFrame(detectFrame);
             }
         }
 
@@ -157,9 +139,7 @@
             if (countStream) {
                 countStream.getTracks().forEach(track => track.stop());
             }
-            document.getElementById("countVideo").style.display = "none";
-            document.getElementById("countCanvas").style.display = "none";
-            document.getElementById("countOverlay").textContent = "Counting stopped";
+            document.getElementById("countResult").textContent = "Stopped";
         }
 
         // Initial load
