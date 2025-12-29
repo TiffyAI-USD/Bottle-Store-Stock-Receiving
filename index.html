@@ -19,8 +19,9 @@
         #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
         #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
         #scannerVideo, #countVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
-        #countResult { font-size: 2rem; margin: 20px 0; color: #44ff44; font-weight: bold; text-align: center; }
-        #countOverlay { position: relative; }
+        #countResult { font-size: 2.5rem; margin: 20px 0; color: #44ff44; font-weight: bold; text-align: center; }
+        #manualCount { font-size: 2rem; text-align: center; margin: 10px 0; }
+        #countOverlay { position: relative; touch-action: manipulation; }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
         .good-stock { color: #44ff44; font-weight: bold; }
     </style>
@@ -57,14 +58,15 @@
 
         <div id="count">
             <h2>Count Case with Camera</h2>
-            <p>Point at a case of bottles – AI counts in real-time</p>
+            <p>Point at case – AI counts automatically. Tap screen to +1 (if missed)</p>
             <button onclick="startCountCamera()">Start Counting</button>
             <button onclick="stopCountCamera()">Stop Counting</button>
-            <div id="countOverlay">
+            <div id="countOverlay" onclick="manualAdd()">
                 <video id="countVideo" playsinline autoplay muted></video>
                 <canvas id="countCanvas"></canvas>
             </div>
             <div id="countResult">Ready – press Start Counting</div>
+            <div id="manualCount">Manual taps: 0</div>
             <button onclick="switchSection('receiving')">Back to Receiving</button>
         </div>
     </div>
@@ -90,6 +92,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.2"></script>
 
     <script>
+        // All your previous functions (playClick, playSparkle, inventory, suppliers, saveAll, updateSuppliersList, addSupplier, switchSection, updateReceivingList, updateInventoryList, barcode keyup, processBarcode, confirmReceive, cancelReceive, clearReceivingSession, printReceivingReport, startPhoneScanner)
+
+        // Paste all the functions from before – they are unchanged
+
         function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
         function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
 
@@ -327,17 +333,30 @@
             }).catch(() => alert("Camera access denied"));
         }
 
-        // Counting Camera – improved
+        // Counting Camera – with manual tap correction
         let countModel = null;
         let countStream = null;
         let counting = false;
+        let aiCount = 0;
+        let manualTaps = 0;
 
         async function loadCountModel() {
             if (!countModel) {
-                document.getElementById("countResult").textContent = "Loading AI model... (first time 10-30s)";
+                document.getElementById("countResult").textContent = "Loading AI model... (10-30s first time)";
                 countModel = await cocoSsd.load();
-                document.getElementById("countResult").textContent = "Model loaded – ready!";
+                document.getElementById("countResult").textContent = "Model loaded – counting!";
             }
+        }
+
+        function manualAdd() {
+            manualTaps++;
+            updateManualCount();
+            playClick();
+        }
+
+        function updateManualCount() {
+            document.getElementById("manualCount").textContent = `Manual taps: +${manualTaps}`;
+            document.getElementById("countResult").textContent = `${aiCount + manualTaps} bottles (AI: ${aiCount} + manual: ${manualTaps})`;
         }
 
         async function startCountCamera() {
@@ -347,6 +366,10 @@
             const canvas = document.getElementById("countCanvas");
             const ctx = canvas.getContext("2d");
             const result = document.getElementById("countResult");
+
+            aiCount = 0;
+            manualTaps = 0;
+            updateManualCount();
 
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
                 countStream = stream;
@@ -367,21 +390,21 @@
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
 
-                let bottleCount = 0;
+                aiCount = 0;
                 predictions.forEach(pred => {
                     if (pred.class === "bottle" && pred.score > 0.5) {
-                        bottleCount++;
+                        aiCount++;
                         const [x, y, width, height] = pred.bbox;
                         ctx.strokeStyle = "#44ff44";
                         ctx.lineWidth = 4;
                         ctx.strokeRect(x, y, width, height);
                         ctx.fillStyle = "#44ff44";
                         ctx.font = "20px Arial";
-                        ctx.fillText(`bottle (${Math.round(pred.score*100)}%)`, x, y - 5);
+                        ctx.fillText(`${Math.round(pred.score*100)}%`, x, y - 5);
                     }
                 });
 
-                result.textContent = `${bottleCount} bottles detected`;
+                updateManualCount();
 
                 if (counting) requestAnimationFrame(detectFrame);
             }
@@ -395,7 +418,7 @@
             }
             document.getElementById("countVideo").style.display = "none";
             document.getElementById("countCanvas").style.display = "none";
-            document.getElementById("countResult").textContent = "Counting stopped";
+            document.getElementById("countResult").textContent = `Final count: ${aiCount + manualTaps} bottles`;
         }
 
         updateSuppliersList();
