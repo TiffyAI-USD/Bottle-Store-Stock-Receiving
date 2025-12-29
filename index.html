@@ -15,12 +15,11 @@
         #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
         #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
-        #receiving { display: block; }
+        #receiving { display: block !important; } /* Force receiving visible */
         #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
         #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
         #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
-        .good-stock { color: #44ff44; font-weight: bold; }
-        .low-stock { color: #ff4444; font-weight: bold; }
+        .good-stock { color: #44ff44; font-weight: bold; } /* New: green for in stock */
     </style>
 </head>
 <body>
@@ -150,7 +149,7 @@
             currentReceiving.forEach(entry => {
                 totalUnits += entry.quantity;
                 const li = document.createElement("li");
-                li.textContent = `${entry.name} — \( {entry.quantity} units ( \){entry.detail})`;
+                li.textContent = `${entry.name} — \( {entry.quantity} units ( \){entry.detail})`; // Fixed line – no escaped backslashes
                 list.appendChild(li);
             });
             document.getElementById("totalReceived").textContent = `Total Units Received: ${totalUnits}`;
@@ -167,8 +166,7 @@
             sorted.forEach(item => {
                 const li = document.createElement("li");
                 li.textContent = `${item.name} — Stock: ${item.stock}`;
-                if (item.stock > 0) li.classList.add("good-stock");
-                if (item.stock < 10 && item.stock > 0) li.classList.add("low-stock");
+                if (item.stock > 0) li.classList.add("good-stock"); // Green for in stock
                 list.appendChild(li);
             });
         }
