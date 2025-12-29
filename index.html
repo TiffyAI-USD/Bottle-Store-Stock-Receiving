@@ -1,94 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOTTLE STORE STOCK RECEIVING</title>
-<style>
-body{font-family:Arial,sans-serif;background:#000;color:#fff;margin:0;padding:10px}
-h1{text-align:center;color:#d4a373;font-size:1.8rem;margin:10px 0}
-h2{font-size:1.6rem;margin:10px 0}
-input,button{font-size:1.6rem;padding:12px;margin:8px 0;width:100%;border-radius:10px;box-sizing:border-box}
-button{background:#d4a373;color:#000;border:none;cursor:pointer}
-p{font-size:1.4rem;margin:8px 0}
-#receivingList,#inventoryList{list-style:none;padding:0;max-height:40vh;overflow-y:auto;margin:15px 0}
-#receivingList li,#inventoryList li{background:#111;padding:12px;margin:8px 0;border-radius:10px;font-size:1.5rem}
-#totalReceived{font-size:1.8rem;text-align:center;color:#d4a373;margin:15px 0}
-#sections > div{display:none}
-#receiving{display:block}
-#multiplierPopup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#111;padding:20px;border-radius:20px;width:90%;max-width:450px;z-index:1000;box-shadow:0 0 30px rgba(212,163,115,0.7);display:none}
-#multiplierPopup input{margin:10px 0;text-align:center;font-size:1.6rem}
-#scannerVideo{width:100%;max-width:500px;border-radius:10px;margin:10px 0;display:none}
-.good-stock{color:#44ff44;font-weight:bold}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOTTLE STORE STOCK RECEIVING</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        h1 { text-align: center; color: #d4a373; font-size: 1.8rem; margin: 10px 0; }
+        h2 { font-size: 1.6rem; margin: 10px 0; }
+        input, button { font-size: 1.6rem; padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; box-sizing: border-box; }
+        button { background: #d4a373; color: #000; border: none; cursor: pointer; }
+        p { font-size: 1.4rem; margin: 8px 0; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 40vh; overflow-y: auto; margin: 15px 0; }
+        #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
+        #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
+        #sections > div { display: none; }
+        #receiving { display: block; }
+        #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
+        #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
+        #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
+        .good-stock { color: #44ff44; font-weight: bold; }
+    </style>
 </head>
 <body>
-<h1>BOTTLE STORE STOCK RECEIVING</h1>
-<div id="sections">
-<div id="receiving">
-<h2>New Delivery</h2>
-<input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList"/>
-<datalist id="suppliersList"></datalist>
-<input type="text" id="deliveryNote" placeholder="Delivery Note Number"/>
-<p>Date: <span id="todayDate"></span></p>
-<button onclick="startPhoneScanner()">Scan with Phone Camera</button>
-<video id="scannerVideo" playsinline autoplay muted></video>
-<input type="text" id="barcodeInput" placeholder="Scan or type barcode" autofocus/>
-<ul id="receivingList"></ul>
-<div id="totalReceived">Total Units Received: 0</div>
-<button onclick="printReceivingReport()">Print Receiving Report</button>
-<button onclick="switchSection('inventory')">View Current Inventory</button>
-<button onclick="clearReceivingSession()">Clear Session</button>
-</div>
-<div id="inventory">
-<h2>Current Inventory</h2>
-<button onclick="switchSection('receiving')">Back to Receiving</button>
-<ul id="inventoryList"></ul>
-</div>
-</div>
-<div id="multiplierPopup">
-<h2 id="popupItemName"></h2>
-<p>Enter pack/case quantities (leave blank for 1 single)</p>
-<input type="number" id="pack4" placeholder="Packs of 4" min="0"/>
-<input type="number" id="pack6" placeholder="Packs of 6" min="0"/>
-<input type="number" id="pack12" placeholder="Packs of 12" min="0"/>
-<input type="number" id="case6" placeholder="Cases of 6" min="0"/>
-<input type="number" id="case12" placeholder="Cases of 12 (Quarts)" min="0"/>
-<input type="number" id="case24" placeholder="Cases of 24" min="0"/>
-<button onclick="confirmReceive()">Confirm</button>
-<button onclick="cancelReceive()">Cancel (add 1 single)</button>
-</div>
-<audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
-<audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<script>
-function playClick(){document.getElementById("clickSound").play().catch(() => {});}
-function playSparkle(){document.getElementById("sparkleSound").play().catch(() => {});}
-document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
-document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
-let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {"6003326012041":{"name":"Black Label 500ml","stock":0},"6003326015790":{"name":"Black Label 330ml","stock":0},"6003326015820":{"name":"Castle Lager 330ml","stock":0},"6003326015721":{"name":"Castle Light 330ml","stock":0},"6001760007715":{"name":"Windhoek 500ml","stock":0},"6001108064264":{"name":"Hunters Dry 440ml","stock":0},"6001108055231":{"name":"Hunters Gold 330ml","stock":0},"6001398128400":{"name":"Smirnoff Ice Pine Twist 440ml","stock":0},"6003326013949":{"name":"Brutal Fruit Ruby Apple 275ml","stock":0},"5010677554398":{"name":"Breezer Watermelon 275ml","stock":0},"6003326013918":{"name":"Flying Fish 500ml","stock":0},"6001108028044":{"name":"Savanna 330ml","stock":0},"5410228141266":{"name":"Stella Artois 330ml","stock":0},"6003326015691":{"name":"Black Crown 440ml","stock":0},"5000289938297":{"name":"Gordons Pink & Tonic 440ml","stock":0},"5000289938280":{"name":"Gordons & Tonic 440ml","stock":0},"6001108097217":{"name":"Extreme 275ml","stock":0},"2211":{"name":"Sodaze 250ml","stock":0},"6001108112064":{"name":"Bernini Mimosa 500ml","stock":0},"9002490100070":{"name":"Red Bull 250ml","stock":0},"2210":{"name":"Lucky Club 250ml","stock":0}};
-let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor","PnP Liquor","Shoprite Liquor","Mothercity Liquor","Direct from Brewery"];
-let currentReceiving = [];
-let pendingCode = "";
-let pendingName = "";
-function saveAll(){localStorage.setItem('bottleInventory', JSON.stringify(inventory));localStorage.setItem('bottleSuppliers', JSON.stringify(suppliers));}
-function updateSuppliersList(){const datalist = document.getElementById("suppliersList");datalist.innerHTML = "";suppliers.forEach(s => {const option = document.createElement("option");option.value = s;datalist.appendChild(option);});}
-function addSupplier(){const input = document.getElementById("supplierInput");const supplier = input.value.trim();if (supplier && !suppliers.includes(supplier)) {suppliers.push(supplier);saveAll();updateSuppliersList();}input.value = supplier;}
-document.getElementById("supplierInput").addEventListener("change", addSupplier);
-function switchSection(section){document.getElementById("receiving").style.display = "none";document.getElementById("inventory").style.display = "none";document.getElementById(section).style.display = "block";if (section === 'inventory') updateInventoryList();}
-function updateReceivingList(){const list = document.getElementById("receivingList");list.innerHTML = "";let totalUnits = 0;currentReceiving.forEach(entry => {totalUnits += entry.quantity;const li = document.createElement("li");li.textContent = entry.name + " — " + entry.quantity + " units (" + entry.detail + ")";list.appendChild(li);});document.getElementById("totalReceived").textContent = "Total Units Received: " + totalUnits;}
-function updateInventoryList(){const list = document.getElementById("inventoryList");list.innerHTML = "";const sorted = Object.keys(inventory).map(code => ({code, ...inventory[code]})).sort((a, b) => a.name.localeCompare(b.name));sorted.forEach(item => {const li = document.createElement("li");li.textContent = item.name + " — Stock: " + item.stock;if (item.stock > 0) li.classList.add("good-stock");list.appendChild(li);});}
-document.getElementById("barcodeInput").addEventListener("keyup", e => {if (e.key === "Enter") {const code = document.getElementById("barcodeInput").value.trim();processBarcode(code);document.getElementById("barcodeInput").value = "";}});
-function processBarcode(code){const item = inventory[code];if (!item) {alert("Unknown barcode: " + code);return;}pendingCode = code;pendingName = item.name;document.getElementById("popupItemName").textContent = item.name;["pack4","pack6","pack12","case6","case12","case24"].forEach(id => document.getElementById(id).value = "");document.getElementById("multiplierPopup").style.display = "block";document.getElementById("pack6").focus();}
-function confirmReceive(){const p4 = parseInt(document.getElementById("pack4").value) || 0;const p6 = parseInt(document.getElementById("pack6").value) || 0;const p12 = parseInt(document.getElementById("pack12").value) || 0;const c6 = parseInt(document.getElementById("case6").value) || 0;const c12 = parseInt(document.getElementById("case12").value) || 0;const c24 = parseInt(document.getElementById("case24").value) || 0;let quantity = p4*4 + p6*6 + p12*12 + c6*6 + c12*12 + c24*24;if (quantity === 0) quantity = 1;let detail = [];if (p4 > 0) detail.push(p4 + "×4-pack");if (p6 > 0) detail.push(p6 + "×6-pack");if (p12 > 0) detail.push(p12 + "×12-pack");if (c6 > 0) detail.push(c6 + "×case6");if (c12 > 0) detail.push(c12 + "×case12");if (c24 > 0) detail.push(c24 + "×case24");if (detail.length === 0) detail.push("1 single");inventory[pendingCode].stock += quantity;currentReceiving.push({name: pendingName, quantity: quantity, detail: detail.join(" + ")});playSparkle();saveAll();updateReceivingList();updateInventoryList();document.getElementById("multiplierPopup").style.display = "none";document.getElementById("barcodeInput").focus();}
-function cancelReceive(){inventory[pendingCode].stock += 1;currentReceiving.push({name: pendingName, quantity: 1, detail: "1 single"});playSparkle();saveAll();updateReceivingList();updateInventoryList();document.getElementById("multiplierPopup").style.display = "none";document.getElementById("barcodeInput").focus();}
-function clearReceivingSession(){if (confirm("Clear this receiving session? Stock already added will stay.")) {currentReceiving = [];updateReceivingList();}}
-function printReceivingReport(){if (currentReceiving.length === 0) return alert("Nothing received yet");const supplier = document.getElementById("supplierInput").value || "Unknown";const deliveryNote = document.getElementById("deliveryNote").value || "N/A";const date = document.getElementById("todayDate").textContent;let report = "BOTTLE STORE STOCK RECEIVING\n====================================\nSupplier: " + supplier + "\nDelivery Note: " + deliveryNote + "\nDate: " + date + "\n\nItems Received:\n";let grandTotal = 0;currentReceiving.forEach(entry => {report += entry.name.padEnd(30) + entry.quantity + " units (" + entry.detail + ")\n";grandTotal += entry.quantity;});report += "====================================\nTOTAL UNITS RECEIVED: ".padEnd(30) + grandTotal + "\nThank you!\n\n\n";const printWin = window.open('', '_blank');printWin.document.write('<pre style="font-family: monospace; font-size: 14pt;">' + report + '</pre>');printWin.document.close();printWin.focus();printWin.print();}
-function startPhoneScanner(){const video = document.getElementById("scannerVideo");video.style.display = "block";navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {video.srcObject = stream;video.play();Quagga.init({inputStream: { name: "Live", type: "LiveStream", target: video },decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader", "code_128_reader"] }}, err => {if (err) { alert("Camera error"); return; }Quagga.start();});Quagga.onDetected(data => {const code = data.codeResult.code;processBarcode(code);Quagga.stop();stream.getTracks().forEach(track => track.stop());video.style.display = "none";});}).catch(() => alert("Camera access denied"));}
-updateSuppliersList();
-updateReceivingList();
-updateInventoryList();
-document.getElementById("multiplierPopup").style.display = "none";
-</script>
+    <h1>BOTTLE STORE STOCK RECEIVING</h1>
+
+    <div id="sections">
+        <div id="receiving">
+            <h2>New Delivery</h2>
+            <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
+            <datalist id="suppliersList"></datalist>
+            <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
+            <p>Date: <span id="todayDate"></span></p>
+
+            <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
+            <video id="scannerVideo" playsinline autoplay muted></video>
+
+            <input type="text" id="barcodeInput" placeholder="Scan or type barcode" autofocus />
+            <ul id="receivingList"></ul>
+            <div id="totalReceived">Total Units Received: 0</div>
+
+            <button onclick="printReceivingReport()">Print Receiving Report</button>
+            <button onclick="switchSection('inventory')">View Current Inventory</button>
+            <button onclick="clearReceivingSession()">Clear Session</button>
+        </div>
+
+        <div id="inventory">
+            <h2>Current Inventory</h2>
+            <button onclick="switchSection('receiving')">Back to Receiving</button>
+            <ul id="inventoryList"></ul>
+        </div>
+    </div>
+
+    <div id="multiplierPopup">
+        <h2 id="popupItemName"></h2>
+        <p>Enter pack/case quantities (leave blank for 1 single)</p>
+        <input type="number" id="pack4" placeholder="Packs of 4" min="0" />
+        <input type="number" id="pack6" placeholder="Packs of 6" min="0" />
+        <input type="number" id="pack12" placeholder="Packs of 12" min="0" />
+        <input type="number" id="case6" placeholder="Cases of 6" min="0" />
+        <input type="number" id="case12" placeholder="Cases of 12 (Quarts)" min="0" />
+        <input type="number" id="case24" placeholder="Cases of 24" min="0" />
+        <button onclick="confirmReceive()">Confirm</button>
+        <button onclick="cancelReceive()">Cancel (add 1 single)</button>
+    </div>
+
+    <audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
+    <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
+    <script>
+        function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
+        function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
+
+        document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
+
+        document.getElementById("todayDate").textContent = new Date().toLocaleDateString('en-ZA');
+
+        let inventory = JSON.parse(localStorage.getItem('bottleInventory')) || {
+            "6003326012041": { name: "Black Label 500ml", stock: 0 },
+            "6003326015790": { name: "Black Label 330ml", stock: 0 },
+            "6003326015820": { name: "Castle Lager 330ml", stock: 0 },
+            "6003326015721": { name: "Castle Light 330ml", stock: 0 },
+            "6001760007715": { name: "Windhoek 500ml", stock: 0 },
+            "6001108064264": { name: "Hunters Dry 440ml", stock: 0 },
+            "6001108055231": { name: "Hunters Gold 330ml", stock: 0 },
+            "6001398128400": { name: "Smirnoff Ice Pine Twist 440ml", stock: 0 },
+            "6003326013949": { name: "Brutal Fruit Ruby Apple 275ml", stock: 0 },
+            "5010677554398": { name: "Breezer Watermelon 275ml", stock: 0 },
+            "6003326013918": { name: "Flying Fish 500ml", stock: 0 },
+            "6001108028044": { name: "Savanna 330ml", stock: 0 },
+            "5410228141266": { name: "Stella Artois 330ml", stock: 0 },
+            "6003326015691": { name: "Black Crown 440ml", stock: 0 },
+            "5000289938297": { name: "Gordons Pink & Tonic 440ml", stock: 0 },
+            "5000289938280": { name: "Gordons & Tonic 440ml", stock: 0 },
+            "6001108097217": { name: "Extreme 275ml", stock: 0 },
+            "2211": { name: "Sodaze 250ml", stock: 0 },
+            "6001108112064": { name: "Bernini Mimosa 500ml", stock: 0 },
+            "9002490100070": { name: "Red Bull 250ml", stock: 0 },
+            "2210": { name: "Lucky Club 250ml", stock: 0 }
+        };
+
+        let suppliers = JSON.parse(localStorage.getItem('bottleSuppliers')) || ["Makro Liquor", "PnP Liquor", "Shoprite Liquor", "Mothercity Liquor", "Direct from Brewery"];
+        let currentReceiving = [];
+        let pendingCode = "";
+        let pendingName = "";
+
+        function saveAll() {
+            localStorage.setItem('bottleInventory', JSON.stringify(inventory));
+            localStorage.setItem('bottleSuppliers', JSON.stringify(suppliers));
+        }
+
+        function updateSuppliersList() {
+            const datalist = document.getElementById("suppliersList");
+            datalist.innerHTML = "";
+            suppliers.forEach(s => {
+                const option = document.createElement("option");
+                option.value = s;
+                datalist.appendChild(option);
+            });
+        }
+
+        function addSupplier() {
+            const input = document.getElementById("supplierInput");
+            const supplier = input.value.trim();
+            if (supplier && !suppliers.includes(supplier)) {
+                suppliers.push(supplier);
+                saveAll();
+                updateSuppliersList();
+            }
+            input.value = supplier;
+        }
+
+        document.getElementById("supplierInput").addEventListener("change", addSupplier);
+
+        function switchSection(section) {
+            document.getElementById("receiving").style.display = "none";
+            document.getElementById("inventory").style.display = "none";
+            document.getElementById(section).style.display = "block";
+            if (section === 'inventory') updateInventoryList();
+        }
+
+        function updateReceivingList() {
+            const list = document.getElementById("receivingList");
+            list.innerHTML = "";
+            let totalUnits = 0;
+            currentReceiving.forEach(entry => {
+                totalUnits += entry.quantity;
+                const li = document.createElement("li");
+                li.textContent = entry.name + " — " + entry.quantity + " units (" + entry.detail + ")";
+                list.appendChild(li);
+            });
+            document.getElementById("totalReceived").textContent = "Total Units Received: " + totalUnits;
+        }
+
+        function updateInventoryList() {
+            const list = document.getElementById("inventoryList");
+            list.innerHTML = "";
+            const sorted = Object.keys(inventory).map(code => ({
+                code,
+                ...inventory[code]
+            })).sort((a, b) => a.name.localeCompare(b.name));
+
+            sorted.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.name + " — Stock: " + item.stock;
+                if (item.stock > 0) li.classList.add("good-stock");
+                list.appendChild(li);
+            });
+        }
+
+        document.getElementById("barcodeInput").addEventListener("keyup", e => {
+            if (e.key === "Enter") {
+                const code = document.getElementById("barcodeInput").value.trim();
+                processBarcode(code);
+                document.getElementById("barcodeInput").value = "";
+            }
+        });
+
+        function processBarcode(code) {
+            const item = inventory[code];
+            if (!item) {
+                alert("Unknown barcode: " + code);
+                return;
+            }
+            pendingCode = code;
+            pendingName = item.name;
+            document.getElementById("popupItemName").textContent = item.name;
+            ["pack4","pack6","pack12","case6","case12","case24"].forEach(id => document.getElementById(id).value = "");
+            document.getElementById("multiplierPopup").style.display = "block";
+            document.getElementById("pack6").focus();
+        }
+
+        function confirmReceive() {
+            const p4 = parseInt(document.getElementById("pack4").value) || 0;
+            const p6 = parseInt(document.getElementById("pack6").value) || 0;
+            const p12 = parseInt(document.getElementById("pack12").value) || 0;
+            const c6 = parseInt(document.getElementById("case6").value) || 0;
+            const c12 = parseInt(document.getElementById("case12").value) || 0;
+            const c24 = parseInt(document.getElementById("case24").value) || 0;
+
+            let quantity = p4*4 + p6*6 + p12*12 + c6*6 + c12*12 + c24*24;
+            if (quantity === 0) quantity = 1;
+
+            let detail = [];
+            if (p4 > 0) detail.push(p4 + "×4-pack");
+            if (p6 > 0) detail.push(p6 + "×6-pack");
+            if (p12 > 0) detail.push(p12 + "×12-pack");
+            if (c6 > 0) detail.push(c6 + "×case6");
+            if (c12 > 0) detail.push(c12 + "×case12");
+            if (c24 > 0) detail.push(c24 + "×case24");
+            if (detail.length === 0) detail.push("1 single");
+
+            inventory[pendingCode].stock += quantity;
+            currentReceiving.push({
+                name: pendingName,
+                quantity: quantity,
+                detail: detail.join(" + ")
+            });
+
+            playSparkle();
+            saveAll();
+            updateReceivingList();
+            updateInventoryList();
+            document.getElementById("multiplierPopup").style.display = "none";
+            document.getElementById("barcodeInput").focus();
+        }
+
+        function cancelReceive() {
+            inventory[pendingCode].stock += 1;
+            currentReceiving.push({
+                name: pendingName,
+                quantity: 1,
+                detail: "1 single"
+            });
+            playSparkle();
+            saveAll();
+            updateReceivingList();
+            updateInventoryList();
+            document.getElementById("multiplierPopup").style.display = "none";
+            document.getElementById("barcodeInput").focus();
+        }
+
+        function clearReceivingSession() {
+            if (confirm("Clear this receiving session? Stock already added will stay.")) {
+                currentReceiving = [];
+                updateReceivingList();
+            }
+        }
+
+        function printReceivingReport() {
+            if (currentReceiving.length === 0) return alert("Nothing received yet");
+
+            const supplier = document.getElementById("supplierInput").value || "Unknown";
+            const deliveryNote = document.getElementById("deliveryNote").value || "N/A";
+            const date = document.getElementById("todayDate").textContent;
+
+            let report = "BOTTLE STORE STOCK RECEIVING\n";
+            report += "====================================\n";
+            report += "Supplier: " + supplier + "\n";
+            report += "Delivery Note: " + deliveryNote + "\n";
+            report += "Date: " + date + "\n\n";
+            report += "Items Received:\n";
+
+            let grandTotal = 0;
+            currentReceiving.forEach(entry => {
+                report += entry.name.padEnd(30) + entry.quantity + " units (" + entry.detail + ")\n";
+                grandTotal += entry.quantity;
+            });
+
+            report += "====================================\n";
+            report += "TOTAL UNITS RECEIVED: ".padEnd(30) + grandTotal + "\n";
+            report += "Thank you!\n\n\n";
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write('<pre style="font-family: monospace; font-size: 14pt;">' + report + '</pre>');
+            printWin.document.close();
+            printWin.focus();
+            printWin.print();
+        }
+
+        function startPhoneScanner() {
+            const video = document.getElementById("scannerVideo");
+            video.style.display = "block";
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+                video.srcObject = stream;
+                video.play();
+
+                Quagga.init({
+                    inputStream: { name: "Live", type: "LiveStream", target: video },
+                    decoder: { readers: ["ean_reader", "ean_8_reader", "upc_reader", "code_128_reader"] }
+                }, err => {
+                    if (err) { alert("Camera error"); return; }
+                    Quagga.start();
+                });
+
+                Quagga.onDetected(data => {
+                    const code = data.codeResult.code;
+                    processBarcode(code);
+                    Quagga.stop();
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = "none";
+                });
+            }).catch(() => alert("Camera access denied"));
+        }
+
+        updateSuppliersList();
+        updateReceivingList();
+        updateInventoryList();
+        document.getElementById("multiplierPopup").style.display = "none";
+    </script>
 </body>
 </html>
