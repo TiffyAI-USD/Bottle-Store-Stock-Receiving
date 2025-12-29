@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOTTLE STORE STOCK RECEIVING</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 10px; }
+        h1 { text-align: center; color: #d4a373; font-size: 1.8rem; margin: 10px 0; }
+        h2 { font-size: 1.6rem; margin: 10px 0; }
+        input, button { font-size: 1.6rem; padding: 12px; margin: 8px 0; width: 100%; border-radius: 10px; box-sizing: border-box; }
+        button { background: #d4a373; color: #000; border: none; cursor: pointer; }
+        p { font-size: 1.4rem; margin: 8px 0; }
+        #receivingList, #inventoryList { list-style: none; padding: 0; max-height: 40vh; overflow-y: auto; margin: 15px 0; }
+        #receivingList li, #inventoryList li { background: #111; padding: 12px; margin: 8px 0; border-radius: 10px; font-size: 1.5rem; }
+        #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
+        #sections > div { display: none; }
+        #receiving { display: block; }
+        #multiplierPopup, #countPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
+        #multiplierPopup input, #countPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
+        #scannerVideo, #countVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
+        #countOverlay { position: relative; margin: -60px 0 20px 0; text-align: center; font-size: 2rem; color: #44ff44; font-weight: bold; pointer-events: none; }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        .good-stock { color: #44ff44; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>BOTTLE STORE STOCK RECEIVING</h1>
+
+    <div id="sections">
+        <div id="receiving">
+            <h2>New Delivery</h2>
+            <input type="text" id="supplierInput" placeholder="Supplier (type or select)" list="suppliersList" />
+            <datalist id="suppliersList"></datalist>
+            <input type="text" id="deliveryNote" placeholder="Delivery Note Number" />
+            <p>Date: <span id="todayDate"></span></p>
+
+            <button onclick="startPhoneScanner()">Scan with Phone Camera</button>
+            <video id="scannerVideo" playsinline autoplay muted></video>
+
+            <input type="text" id="barcodeInput" placeholder="Scan or type barcode" autofocus />
+            <ul id="receivingList"></ul>
+            <div id="totalReceived">Total Units Received: 0</div>
+
+            <button onclick="printReceivingReport()">Print Receiving Report</button>
+            <button onclick="switchSection('inventory')">View Current Inventory</button>
+            <button onclick="switchSection('count')">Count Case (Camera)</button>
+            <button onclick="clearReceivingSession()">Clear Session</button>
+        </div>
+
+        <div id="inventory">
+            <h2>Current Inventory</h2>
+            <button onclick="switchSection('receiving')">Back to Receiving</button>
+            <ul id="inventoryList"></ul>
+        </div>
+
+        <div id="count">
+            <h2>Count Case with Camera</h2>
+            <p>Point camera at case – app will count bottles</p>
+            <button onclick="startCountCamera()">Start Counting</button>
+            <button onclick="stopCountCamera()">Stop</button>
+            <div style="position: relative;">
+                <video id="countVideo" playsinline autoplay muted></video>
+                <canvas id="countCanvas"></canvas>
+                <div id="countOverlay">Counting...</div>
+            </div>
+            <button onclick="switchSection('receiving')">Back to Receiving</button>
+        </div>
+    </div>
+
+    <div id="multiplierPopup">
+        <h2 id="popupItemName"></h2>
+        <p>Enter pack/case quantities (leave blank for 1 single)</p>
+        <input type="number" id="pack4" placeholder="Packs of 4" min="0" />
+        <input type="number" id="pack6" placeholder="Packs of 6" min="0" />
+        <input type="number" id="pack12" placeholder="Packs of 12" min="0" />
+        <input type="number" id="case6" placeholder="Cases of 6" min="0" />
+        <input type="number" id="case12" placeholder="Cases of 12 (Quarts)" min="0" />
+        <input type="number" id="case24" placeholder="Cases of 24" min="0" />
+        <button onclick="confirmReceive()">Confirm</button>
+        <button onclick="cancelReceive()">Cancel (add 1 single)</button>
+    </div>
+
+    <audio id="clickSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/click.wav" preload="auto"></audio>
+    <audio id="sparkleSound" src="https://tiffyai-usd.github.io/Papa_Ron_Point_of_Sale/sparcle.wav" preload="auto"></audio>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2.7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.1.0"></script>
+
+    <script>
+        // Common functions (play sounds, date, inventory, suppliers, saveAll, updateSuppliersList, addSupplier, switchSection, updateReceivingList, updateInventoryList, processBarcode, confirmReceive, cancelReceive, clearReceivingSession, printReceivingReport, startPhoneScanner) – same as before
+
+        // ... (keep all your previous script code up to startPhoneScanner)
+
+        // New: Counting Camera
+        let countModel;
+        let countStream;
+        let counting = false;
+
+        async function loadCountModel() {
+            if (!countModel) {
+                countModel = await cocoSsd.load();
+            }
+        }
+
+        async function startCountCamera() {
+            const video = document.getElementById("countVideo");
+            const canvas = document.getElementById("countCanvas");
+            const overlay = document.getElementById("countOverlay");
+            const ctx = canvas.getContext("2d");
+
+            await loadCountModel();
+
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+                countStream = stream;
+                video.srcObject = stream;
+                video.style.display = "block";
+                canvas.style.display = "block";
+                video.play();
+
+                counting = true;
+                detectFrame();
+            });
+
+            async function detectFrame() {
+                if (!counting) return;
+
+                countModel.detect(video).then(predictions => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    let bottleCount = 0;
+                    predictions.forEach(pred => {
+                        if (pred.class === "bottle" && pred.score > 0.6) {
+                            bottleCount++;
+                            const [x, y, width, height] = pred.bbox;
+                            ctx.strokeStyle = "#44ff44";
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(x, y, width, height);
+                            ctx.fillStyle = "#44ff44";
+                            ctx.font = "20px Arial";
+                            ctx.fillText("bottle", x, y - 10);
+                        }
+                    });
+
+                    overlay.textContent = `${bottleCount} bottles detected`;
+
+                    requestAnimationFrame(detectFrame);
+                });
+            }
+        }
+
+        function stopCountCamera() {
+            counting = false;
+            if (countStream) {
+                countStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById("countVideo").style.display = "none";
+            document.getElementById("countCanvas").style.display = "none";
+            document.getElementById("countOverlay").textContent = "Counting stopped";
+        }
+
+        // Initial load
+        updateSuppliersList();
+        updateReceivingList();
+        updateInventoryList();
+    </script>
+</body>
+</html>
