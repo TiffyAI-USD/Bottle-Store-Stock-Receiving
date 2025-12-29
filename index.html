@@ -16,6 +16,7 @@
         #totalReceived { font-size: 1.8rem; text-align: center; color: #d4a373; margin: 15px 0; }
         #sections > div { display: none; }
         #receiving { display: block !important; }
+        #receiving input, #receiving ul, #receiving datalist { display: block !important; visibility: visible !important; }
         #multiplierPopup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #111; padding: 20px; border-radius: 20px; width: 90%; max-width: 450px; z-index: 1000; box-shadow: 0 0 30px rgba(212,163,115,0.7); display: none; }
         #multiplierPopup input { margin: 10px 0; text-align: center; font-size: 1.6rem; }
         #scannerVideo { width: 100%; max-width: 500px; border-radius: 10px; margin: 10px 0; display: none; }
@@ -71,12 +72,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
     <script>
-        function playClick() { 
-            document.getElementById("clickSound").play().catch(() => {}); 
-        }
-        function playSparkle() { 
-            document.getElementById("sparkleSound").play().catch(() => {}); 
-        }
+        function playClick() { document.getElementById("clickSound").play().catch(() => {}); }
+        function playSparkle() { document.getElementById("sparkleSound").play().catch(() => {}); }
 
         document.querySelectorAll('button').forEach(btn => btn.addEventListener('click', playClick));
 
@@ -315,7 +312,6 @@
         updateReceivingList();
         updateInventoryList();
         document.getElementById("multiplierPopup").style.display = "none";
-        document.getElementById("receiving").style.display = "block !important"; // Force receiving visible
     </script>
 </body>
 </html>
